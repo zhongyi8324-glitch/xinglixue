@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>善行·善言·善爱 打卡</title>
+<style>
+:root{
+  --bg:#FFF8E7;--card:#FFFBF0;--border:#D4A853;--title:#5C3D2E;
+  --body:#4A3728;--accent:#E8A030;--accent2:#C4956A;--heart:#F0A090;
+  --green:#6DBA4A;--blue:#5BA3D9;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--body);min-height:100vh;padding-bottom:env(safe-area-inset-bottom,16px);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+
+/* ===== LOADING ===== */
+#loading{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#loading.hide{display:none}
+.spin{width:48px;height:48px;border:4px solid #E8D5B0;border-top-color:#E8A030;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadMsg{font-size:15px;color:#8B6914}
+
+/* ===== LOGIN ===== */
+#login{
+  position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#FFF8E7,#FFEED1 50%,#FFE4B5);
+  display:flex;align-items:center;justify-content:center;padding:24px
+}
+#login.hide{display:none}
+.lc{
+  background:var(--card);border:2.5px solid var(--border);border-radius:24px;
+  padding:40px 28px;width:100%;max-width:340px;text-align:center;
+  box-shadow:0 8px 32px rgba(212,168,83,.18);position:relative
+}
+.ld{position:absolute;font-size:18px;color:var(--accent);opacity:.35}
+.ld-tl{top:14px;left:18px}.ld-tr{top:14px;right:18px}
+.ld-bl{bottom:60px;left:18px}.ld-br{bottom:60px;right:18px}
+.ldecor{color:var(--accent);font-size:14px;letter-spacing:6px;margin-bottom:8px;opacity:.6}
+.lt{font-size:26px;font-weight:bold;color:var(--title);margin-bottom:4px}
+.ls{font-size:13px;color:#8B6914;margin-bottom:28px}
+.li{
+  width:100%;padding:13px 16px;font-size:16px;border:2px solid var(--border);
+  border-radius:14px;background:#FFFEFA;color:var(--body);outline:none;
+  margin-bottom:12px;transition:border-color .2s;-webkit-appearance:none;font-family:inherit
+}
+.li:focus{border-color:var(--accent)}
+.li::placeholder{color:var(--accent2);font-size:14px}
+.bl{
+  width:100%;padding:14px;border:none;border-radius:14px;font-size:17px;
+  font-weight:bold;cursor:pointer;transition:transform .12s
+}
+.bl:active{transform:scale(.96)}
+.bl1{background:linear-gradient(135deg,#E8A030,#D4922A);color:#fff;box-shadow:0 4px 16px rgba(232,160,48,.35)}
+.bl2{background:transparent;color:#8B7355;font-size:13px;margin-top:8px;padding:10px}
+.le{color:#E05050;font-size:13px;margin-top:8px;min-height:18px}
+
+/* ===== MAIN APP ===== */
+#app{display:none}
+#app.show{display:block}
+
+/* Points Banner */
+.pb{
+  background:linear-gradient(135deg,#E8A030,#D4922A);padding:14px 16px 12px;color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 3px 12px rgba(232,160,48,.3);position:relative;overflow:hidden
+}
+.pb::after{content:"✦";position:absolute;right:-10px;top:-8px;font-size:80px;opacity:.07;color:#fff;pointer-events:none}
+.pl{display:flex;flex-direction:column;min-width:0}
+.pll{font-size:11px;opacity:.85}
+.pln{font-size:30px;font-weight:bold;line-height:1.1}
+.plv{font-size:11px;opacity:.85;margin-top:2px}
+.lb{width:100%;height:6px;background:rgba(255,255,255,.25);border-radius:3px;margin-top:6px;overflow:hidden}
+.lf{height:100%;background:#fff;border-radius:3px;transition:width .5s}
+.pr{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;margin-left:12px}
+.sb{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;backdrop-filter:blur(4px);white-space:nowrap}
+.br{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mb{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(255,255,255,.2)}
+
+/* Header */
+.hh{background:linear-gradient(135deg,#F5DEB3,#FFE4B5);padding:16px 16px 14px;text-align:center;position:relative;border-bottom:2px solid var(--border)}
+.hh h1{font-size:22px;color:var(--title);margin-bottom:2px}
+.hh p{font-size:12px;color:#8B6914}
+.dh{position:absolute;font-size:20px}
+.dh-tl{top:6px;left:10px}.dh-tr{top:6px;right:10px}
+.dh-bl{bottom:6px;left:10px}.dh-br{bottom:6px;right:10px}
+
+/* Tabs */
+.tabs{display:flex;background:var(--card);border-bottom:2px solid #E8D5B0;position:sticky;top:0;z-index:100}
+.tab{
+  flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;
+  transition:all .2s;border-bottom:3px solid transparent;color:#8B7355;white-space:nowrap
+}
+.tab.on{color:#B8691E;border-bottom-color:var(--accent);background:var(--bg)}
+
+/* Pages */
+.page{display:none;padding:14px;animation:fadeIn .25s}
+.page.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Card */
+.c{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:16px 12px;margin-bottom:14px}
+.ct{font-size:17px;font-weight:bold;color:#B8691E;text-align:center;margin-bottom:12px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#F5DEB3;color:var(--title);padding:8px 5px;font-weight:bold;text-align:center;border:1.5px solid #DDB89A}
+td{padding:8px 5px;border:1.5px solid #DDB89A;vertical-align:middle;text-align:left;font-size:13px}
+td:first-child{font-weight:600;text-align:center;width:22%;background:#FFFDF8}
+td:last-child{text-align:center;width:22%}
+input[type=text]{
+  width:100%;border:1.5px dashed var(--accent2);border-radius:8px;
+  padding:7px 9px;font-size:13px;background:#FFFEFA;color:var(--body);
+  outline:none;transition:border-color .2s;-webkit-appearance:none;font-family:inherit
+}
+input[type=text]:focus{border-color:var(--accent);border-style:solid}
+input::placeholder{color:var(--accent2)}
+
+/* Checkbox */
+.cw{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ci{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cb{
+  width:30px;height:30px;border:2.5px solid var(--accent2);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .2s;background:#fff;font-size:18px;-webkit-user-select:none
+}
+.cb.on{background:var(--accent);border-color:var(--accent)}
+.cb.on::after{content:"✓";color:#fff;font-weight:bold}
+.cl{font-size:11px;color:#8B7355}
+
+/* Stats bar */
+.sb2{display:flex;justify-content:space-around;padding:10px 8px;background:var(--card);border-radius:12px;margin-bottom:14px;border:1.5px solid #E8D5B0}
+.si{text-align:center}
+.sn{font-size:20px;font-weight:bold}
+.sl{font-size:10px;color:#8B7355;margin-top:2px}
+
+/* Points fly */
+.pf{position:fixed;z-index:9999;font-size:20px;font-weight:bold;color:var(--accent);pointer-events:none;animation:pf 1.2s ease-out forwards}
+@keyframes pf{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1}100%{opacity:0;transform:translateY(-80px) scale(1.3)}}
+
+/* Quote */
+.qb{border:2px dashed var(--border);border-radius:12px;padding:14px 12px;background:#FFFDF5;text-align:center;margin:10px 0}
+.qb textarea{width:100%;border:none;background:transparent;font-size:17px;color:var(--title);text-align:center;resize:none;outline:none;font-family:inherit;line-height:1.6}
+.qh{font-size:12px;color:#8B6914;margin-top:6px}
+
+/* History */
+.hi{background:var(--card);border:1.5px solid #E8D5B0;border-radius:10px;padding:11px;margin-bottom:8px;font-size:13px}
+.hd{font-weight:bold;color:#B8691E;margin-bottom:4px}
+.hr{color:#6B5644;line-height:1.6}
+
+/* Achievements */
+.ag{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.ai{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border-radius:12px;border:1.5px solid #E8D5B0;background:#FFFDF8;transition:all .2s}
+.ai.on{border-color:var(--accent);background:var(--bg)}
+.ax{font-size:22px}
+.an{font-size:10px;color:#8B7355;text-align:center;line-height:1.2}
+.ai.on .an{color:#B8691E;font-weight:600}
+
+/* Leaderboard */
+.ri{display:flex;align-items:center;gap:12px;padding:11px 10px;border-bottom:1px solid #E8D5B0;font-size:14px}
+.ri:last-child{border-bottom:none}
+.rm{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;flex-shrink:0}
+.r1{background:linear-gradient(135deg,#FFD700,#FFA500);color:var(--title)}
+.r2{background:linear-gradient(135deg,#C8C8C8,#A8A8A8);color:var(--title)}
+.r3{background:linear-gradient(135deg,#CD7F32,#B06020);color:#fff}
+.ro{background:#E8D5B0;color:#8B7355}
+.rme{background:var(--bg)}
+.rn{flex:1;font-weight:600;color:var(--title)}
+.rp{font-weight:bold;color:var(--accent)}
+
+/* Rules */
+.rulei{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F0E8D8;font-size:13px;color:#6B5644}
+
+/* Buttons */
+.bns{
+  display:block;width:100%;max-width:280px;margin:16px auto 0;padding:14px;
+  border:none;border-radius:28px;background:linear-gradient(135deg,#E8A030,#D4922A);
+  color:#fff;font-size:16px;font-weight:bold;cursor:pointer;
+  box-shadow:0 4px 14px rgba(232,160,48,.35);transition:transform .12s;-webkit-tap-highlight-color:transparent
+}
+.bns:active{transform:scale(.96)}
+.bns:disabled{opacity:.6;cursor:not-allowed}
+.bnl{
+  display:block;width:100%;max-width:280px;margin:16px auto;
+  padding:12px;border:2px solid var(--accent2);border-radius:28px;
+  background:transparent;color:var(--accent2);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s
+}
+.bnl:active{background:#FFF0E8}
+
+/* Toast */
+.t{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(74,55,40,.92);color:#fff;padding:14px 28px;
+  border-radius:12px;font-size:15px;z-index:9999;opacity:0;pointer-events:none;
+  transition:opacity .3s;text-align:center;max-width:85%
+}
+.t.on{opacity:1}
+
+/* Week selector */
+.ws{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;font-size:14px;color:#6B5644}
+.wb{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--title)}
+.wb:active{background:#F5DEB3}
+
+/* My rank */
+.mrc{background:linear-gradient(135deg,#FFF8E7,#FFE4B5);border:2px solid var(--accent);border-radius:12px;padding:12px;margin-bottom:12px;text-align:center}
+.mrt{font-size:13px;color:#8B6914}
+.mrn{font-size:28px;font-weight:bold;color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spin"></div>
+  <div id="loadMsg">正在连接服务器...</div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div id="login" class="hide">
+  <div class="lc">
+    <span class="ld ld-tl">♥</span><span class="ld ld-tr">✦</span>
+    <span class="ld ld-bl">✦</span><span class="ld ld-br">♥</span>
+    <div class="ldecor">♥ ✦ ♥ ✦</div>
+    <div class="lt">善行·善言·善爱</div>
+    <div class="ls">✨ 每日打卡，积善成爱 ✨</div>
+    <input class="li" id="inName" type="text" placeholder="请输入你的昵称（如：小明）" maxlength="20" autocomplete="off">
+    <button class="bl bl1" id="btnLogin" onclick="doLogin()">🚀 开始打卡</button>
+    <button class="bl bl2" onclick="doQuick()">⚡ 快速加入（匿名）</button>
+    <div class="le" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+
+  <!-- Points Banner -->
+  <div class="pb">
+    <div class="pl">
+      <div class="pll">✨ 我的积分</div>
+      <div class="pln" id="pNum">0</div>
+      <div class="plv" id="pLvl">🌱 初心者 Lv.1</div>
+      <div class="lb"><div class="lf" id="lFill"></div></div>
+    </div>
+    <div class="pr">
+      <div class="sb" id="sBadge">🔥 连续 0 天</div>
+      <div class="br" id="bRow"></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="hh">
+    <span class="dh dh-tl">♥</span><span class="dh dh-tr">♥</span>
+    <h1>善行·善言·善爱</h1>
+    <p>欢迎回来，<b id="uName"></b>！一起打卡吧 💪</p>
+    <span class="dh dh-bl">✦</span><span class="dh dh-br">✦</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab on" onclick="tab('card')">📋 承诺卡</div>
+    <div class="tab" onclick="tab('quote')">💬 金句</div>
+    <div class="tab" onclick="tab('rank')">🏆 排行榜</div>
+    <div class="tab" onclick="tab('his')">📊 记录</div>
+  </div>
+
+  <!-- Page: Card -->
+  <div id="pg-card" class="page on">
+    <div class="ws">
+      <button class="wb" onclick="chWeek(-1)">◀</button>
+      <span id="wLbl">第 1 周</span>
+      <button class="wb" onclick="chWeek(1)">▶</button>
+    </div>
+    <div class="sb2">
+      <div class="si"><div class="sn" style="color:#E8A030" id="sDone">0</div><div class="sl">已完成</div></div>
+      <div class="si"><div class="sn" style="color:#C4956A">3</div><div class="sl">总任务</div></div>
+      <div class="si"><div class="sn" style="color:#6DBA4A" id="sRate">0%</div><div class="sl">完成率</div></div>
+      <div class="si"><div class="sn" style="color:#5BA3D9" id="sPts">+0</div><div class="sl">本周积分</div></div>
+    </div>
+    <div class="c">
+      <table>
+        <thead><tr><th>行动类型</th><th>行动内容</th><th>具体时间</th></tr></thead>
+        <tbody>
+          <tr><td>一个微善行</td><td><input type="text" placeholder="我为____做____" data-f="w1_c" oninput="autoSave()"></td><td><input type="text" placeholder="____月____日" data-f="w1_d"></td></tr>
+          <tr><td>一句积极回应</td><td><input type="text" placeholder="我对____说____" data-f="w2_c" oninput="autoSave()"></td><td><input type="text" placeholder="____月____日" data-f="w2_d"></td></tr>
+          <tr><td>一次感恩表达</td><td><input type="text" placeholder="我对____感谢____" data-f="w3_c" oninput="autoSave()"></td><td><input type="text" placeholder="____月____日" data-f="w3_d"></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:14px;">
+        <div style="font-size:13px;color:#8B6914;margin-bottom:8px;text-align:center">✅ 勾选完成获得积分（+15分/项）</div>
+        <div class="cw">
+          <div class="ci"><div class="cb" data-g="c1" onclick="tg(this)"></div><div class="cl">微善行</div></div>
+          <div class="ci"><div class="cb" data-g="c2" onclick="tg(this)"></div><div class="cl">积极回应</div></div>
+          <div class="ci"><div class="cb" data-g="c3" onclick="tg(this)"></div><div class="cl">感恩表达</div></div>
+        </div>
+      </div>
+    </div>
+    <button class="bns" id="btnSave" onclick="save()">💾 保存本周打卡</button>
+  </div>
+
+  <!-- Page: Quote -->
+  <div id="pg-quote" class="page">
+    <div class="c">
+      <div class="ct">我的"修复式语言"金句 💬</div>
+      <div class="qb"><textarea id="qt" rows="3" placeholder='"写下你今天设计的那句修复式语言..."'></textarea></div>
+      <div class="qh">✨ 用温暖的语言修复关系，让爱流动起来（+10 积分）</div>
+    </div>
+    <div class="c">
+      <div class="ct" style="font-size:15px">📝 我的金句记录</div>
+      <div id="qList" style="font-size:13px;color:#6B5644"></div>
+    </div>
+    <button class="bns" onclick="svQ()">💾 保存金句（+10分）</button>
+  </div>
+
+  <!-- Page: Rank -->
+  <div id="pg-rank" class="page">
+    <div class="mrc"><div class="mrt">🏅 我的排名</div><div class="mrn" id="mRank">--</div></div>
+    <div class="c">
+      <div class="ct">🏆 积分排行榜 TOP 20</div>
+      <div id="lb"></div>
+    </div>
+    <div class="c">
+      <div class="ct" style="font-size:15px">🎖️ 成就徽章</div>
+      <div class="ag" id="ag"></div>
+    </div>
+    <div class="c">
+      <div class="ct" style="font-size:15px">📋 积分规则</div>
+      <div id="rules"></div>
+    </div>
+  </div>
+
+  <!-- Page: History -->
+  <div id="pg-his" class="page">
+    <div class="c">
+      <div class="ct">📊 打卡记录</div>
+      <div id="his"></div>
+    </div>
+    <button class="bnl" onclick="logout()">🚪 退出登录</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="t" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const SB = 'https://zikqvarxbhvzsdxyvymg.supabase.co';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppa3F2YXJ4Ymh2enNkeHl2eW1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNzMyNjEsImV4cCI6MjA5NTg0OTI2MX0.VhEvnM9_g7mRLTZopToOs-R1DYC48YfBgsN7nPntl-I';
+const PTS = {CHECK:15,SAVE:10,QUOTE:10,S3:30,S7:80,S30:300,ALL3:20,FW:50};
+const LEVELS = [{l:1,n:'🌱 初心者',v:0},{l:2,n:'🌿 萌芽期',v:50},{l:3,n:'🌷 开花期',v:150},{l:4,n:'🌳 成长期',v:300},{l:5,n:'💎 闪耀期',v:500},{l:6,n:'👑 善爱大使',v:1000}];
+const ACH = [
+  {i:'f',n:'初次打卡',x:'🌱',d:'完成第一次打卡',f:u=>u.total_checks>=1},
+  {i:'t',n:'三件全做',x:'🎯',d:'一周完成3项行动',f:u=>u.best_week>=3},
+  {i:'s3',n:'坚持3天',x:'🔥',d:'连续打卡3天',f:u=>u.streak>=3},
+  {i:'s7',n:'一周达人',x:'⭐',d:'连续打卡7天',f:u=>u.streak>=7},
+  {i:'s30',n:'月度之星',x:'🌟',d:'连续打卡30天',f:u=>u.streak>=30},
+  {i:'p100',n:'百位积分',x:'💯',d:'累计100积分',f:u=>u.points>=100},
+  {i:'p500',n:'积分达人',x:'🏅',d:'累计500积分',f:u=>u.points>=500},
+  {i:'p1k',n:'千分大神',x:'👑',d:'累计1000积分',f:u=>u.points>=1000},
+  {i:'q5',n:'金句新手',x:'💬',d:'写下5句金句',f:u=>u.quote_count>=5},
+  {i:'q20',n:'金句大师',x:'📜',d:'写下20句金句',f:u=>u.quote_count>=20},
+  {i:'w4',n:'月度坚持',x:'📅',d:'打卡满4周',f:u=>u.weeks_done>=4},
+  {i:'w12',n:'季度之星',x:'🏆',d:'打卡满12周',f:u=>u.weeks_done>=12},
+];
+
+// ===== STATE =====
+let st = {uid:null,nick:null,u:null,wk:1};
+let dsTimer = null;
+
+// ===== API =====
+async function api(m,tab,sel,qp={}) {
+  const url = SB+'/rest/v1/'+tab+(sel?('?select='+sel):'');
+  const r = await fetch(url,{
+    method:m,
+    headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=representation'},
+    ...(m==='GET'&&Object.keys(qp).length?{}:{}),
+    body:['POST','PATCH','PUT','DELETE'].includes(m)?JSON.stringify(qp):undefined
+  });
+  if(!r.ok){const t=await r.text();throw new Error(t)}
+  const t=await r.text();return t?JSON.parse(t):null
+}
+
+async function apiGet(tab,sel,qp={}) {
+  const params = new URLSearchParams();
+  for(const[k,v]of Object.entries(qp)) params.append(k,v);
+  const url = SB+'/rest/v1/'+tab+'?'+params+'&select='+sel;
+  const r = await fetch(url,{
+    headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Prefer':'count=none'}
+  });
+  if(!r.ok) return [];
+  return r.json();
+}
+
+// ===== INIT =====
+(async()=>{
+  showL('正在连接服务器...');
+  try{
+    await apiGet('users','id');
+    hideL();
+  }catch{
+    hideL();showT('⚠️ 服务器连接失败，请检查网络');
+  }
+  const sess = sessionStorage.getItem('sxs');
+  if(sess){
+    try{
+      const s=JSON.parse(sess);
+      st.uid=s.uid;st.nick=s.nick;
+      await loadU();
+      enterApp();return;
+    }catch{}
+  }
+  showLogin();
+})();
+
+function showL(m){document.getElementById('loadMsg').textContent=m;document.getElementById('loading').classList.remove('hide')}
+function hideL(){document.getElementById('loading').classList.add('hide')}
+function showLogin(){document.getElementById('login').classList.remove('hide')}
+function showT(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)}
+
+// ===== LOGIN =====
+async function doLogin(){
+  const n=document.getElementById('inName').value.trim();
+  const btn=document.getElementById('btnLogin');
+  if(!n){showT('⚠️ 请输入昵称');return}
+  if(n.length<2){showT('⚠️ 昵称至少2个字');return}
+  btn.disabled=true;btn.textContent='⏳ 登录中...';
+  document.getElementById('loginErr').textContent='';
+  try{
+    let rows=await apiGet('users','*',{'nickname':`eq.${n}`});
+    let u;
+    if(rows.length>0){u=rows[0]}
+    else{u=await api('POST','users',null,{'nickname':n,points:0,streak:0,total_checks:0,best_week:0,quote_count:0,weeks_done:0,achievements:[]})}
+    st.uid=u.id;st.nick=n;st.u=u;
+    sessionStorage.setItem('sxs',JSON.stringify({uid:u.id,nick:n}));
+    btn.textContent='🚀 开始打卡';btn.disabled=false;
+    enterApp();
+  }catch(e){
+    btn.textContent='🚀 开始打卡';btn.disabled=false;
+    document.getElementById('loginErr').textContent='❌ 登录失败，请重试';
+  }
+}
+
+async function doQuick(){
+  const n='学员'+Math.floor(1e3+Math.random()*9e3);
+  document.getElementById('inName').value=n;
+  await doLogin();
+}
+
+// ===== APP ENTRY =====
+async function enterApp(){
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+  document.getElementById('uName').textContent=st.nick;
+  await loadU();
+  renderAll();
+}
+
+async function loadU(){
+  try{
+    const rows=await apiGet('users','*',{'id':`eq.${st.uid}`});
+    if(rows.length>0) st.u=rows[0];
+  }catch{}
+}
+
+// ===== RENDER =====
+function glvl(pts){
+  let lv=LEVELS[0];
+  for(const l of LEVELS) if(pts>=l.v) lv=l;
+  return lv;
+}
+function nlvl(pts){
+  for(const l of LEVELS) if(pts<l.v) return l;
+  return null;
+}
+
+function renderAll(){
+  renderPts();
+  loadWk();
+  chkAch();
+}
+
+function renderPts(){
+  const u=st.u||{};
+  const p=u.points||0;
+  document.getElementById('pNum').textContent=p;
+  const lv=glvl(p);
+  document.getElementById('pLvl').textContent=lv.n;
+  const nl=nlvl(p);
+  const f=document.getElementById('lFill');
+  if(nl) f.style.width=Math.min((p-lv.v)/(nl.v-lv.v)*100,100)+'%';
+  else f.style.width='100%';
+  document.getElementById('sBadge').textContent='🔥 连续 '+(u.streak||0)+' 天';
+  const row=document.getElementById('bRow');
+  const achs=u.achievements||[];
+  const r=achs.slice(-4);
+  row.innerHTML=r.length?r.map(a=>{const x=ACH.find(y=>y.i===a);return x?`<div class="mb" title="${x.d}">${x.x}</div>`:''}).join(''):`<div style="font-size:11px;opacity:.7;color:rgba(255,255,255,.8)">打卡解锁</div>`;
+}
+
+// ===== TABS =====
+function tab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',['card','quote','rank','his'][i]===n));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+n).classList.add('on');
+  if(n==='his') renderHis();
+  if(n==='quote') renderQ();
+  if(n==='rank') renderRank();
+}
+
+// ===== WEEK =====
+function chWeek(d){st.wk=Math.max(1,st.wk+d);document.getElementById('wLbl').textContent='第 '+st.wk+' 周';loadWk()}
+
+// ===== FIELDS =====
+function getFlds(){
+  const r={};
+  document.querySelectorAll('[data-f]').forEach(el=>r[el.dataset.f]=el.value.trim());
+  for(let i=1;i<=3;i++){
+    const cb=document.querySelector('[data-g="c'+i+'"]');
+    r['c'+i]=cb?cb.classList.contains('on'):false;
+  }
+  return r;
+}
+
+async function loadWk(){
+  if(!st.uid)return;
+  try{
+    const rows=await apiGet('checkins','*',{'user_id':`eq.${st.uid}`,'week_num':`eq.${st.wk}`});
+    const w=rows[0]||{};
+    document.querySelectorAll('[data-f]').forEach(el=>el.value=w[el.dataset.f]||'');
+    for(let i=1;i<=3;i++){
+      const cb=document.querySelector('[data-g="c'+i+'"]');
+      if(cb)cb.classList.toggle('on',!!w['c'+i]);
+    }
+    updStats();
+  }catch{}
+}
+
+function updStats(){
+  let d=0;
+  for(let i=1;i<=3;i++){
+    const cb=document.querySelector('[data-g="c'+i+'"]');
+    if(cb&&cb.classList.contains('on'))d++;
+  }
+  document.getElementById('sDone').textContent=d;
+  document.getElementById('sRate').textContent=Math.round(d/3*100)+'%';
+  document.getElementById('sPts').textContent='+'+d*PTS.CHECK;
+}
+
+function autoSave(){
+  clearTimeout(dsTimer);
+  dsTimer=setTimeout(async()=>{
+    if(!st.uid)return;
+    const f=getFlds();
+    try{
+      const ex=await apiGet('checkins','id',{'user_id':`eq.${st.uid}`,'week_num':`eq.${st.wk}`});
+      if(ex.length>0){
+        await api('PATCH','checkins',null,{'user_id':`eq.${st.uid}`,'week_num':`eq.${st.wk}`},f);
+      }else{
+        await api('POST','checkins',null,{user_id:st.uid,week_num:st.wk,...f});
+      }
+    }catch{}
+  },1500);
+}
+
+// ===== CHECKBOX =====
+function tg(el){
+  const was=el.classList.contains('on');
+  el.classList.toggle('on');
+  if(!was){
+    fly('+'+PTS.CHECK);
+    updStats();
+    const u=st.u||{};
+    u.total_checks=(u.total_checks||0)+1;
+    saveU(PTS.CHECK,{tc:1});
+    chkAch();
+  }
+}
+
+function fly(txt){
+  const el=document.createElement('div');
+  el.className='pf';
+  el.textContent=txt;
+  el.style.left=(30+Math.random()*40)+'%';
+  el.style.top='30%';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+
+// ===== SAVE CARD =====
+async function save(){
+  const btn=document.getElementById('btnSave');
+  btn.disabled=true;btn.textContent='⏳ 保存中...';
+  const f=getFlds();
+  const d=[f.c1,f.c2,f.c3].filter(Boolean).length;
+  const u=st.u||{};
+  const today=new Date().toISOString().slice(0,10);
+  const yst=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  let ns=u.streak||0;
+  if(u.last_checkin_date!==today) ns=(u.last_checkin_date===yst)?ns+1:1;
+  let xp=PTS.SAVE;
+  const ex={};
+  try{
+    const exR=await apiGet('checkins','id',{'user_id':`eq.${st.uid}`,'week_num':`eq.${st.wk}`});
+    if(exR.length>0){
+      await api('PATCH','checkins',null,{'user_id':`eq.${st.uid}`,'week_num':`eq.${st.wk}`},{...f,saved_at:new Date().toISOString()});
+    }else{
+      await api('POST','checkins',null,{user_id:st.uid,week_num:st.wk,...f,saved_at:new Date().toISOString()});
+      ex.wd=1;
+    }
+    if(d>=3) ex.bw=d;
+    await saveU(xp,ex,ns,today);
+    if(ns===3) await saveU(PTS.S3,{});
+    if(ns===7) await saveU(PTS.S7,{});
+    if(ns===30) await saveU(PTS.S30,{});
+    await chkAch();
+    renderPts();
+    showT('✅ 已保存！+'+xp+'分');
+  }catch(e){console.error(e);showT('❌ 保存失败');}
+  btn.disabled=false;btn.textContent='💾 保存本周打卡';
+}
+
+// ===== SAVE USER STATS =====
+async function saveU(pts,ex={},streak,ldate){
+  if(!st.uid)return;
+  const u=st.u||{};
+  const tod=ldate||new Date().toISOString().slice(0,10);
+  const p={points:(u.points||0)+pts,streak:streak||u.streak||0,last_checkin_date:tod};
+  if(ex.tc!==undefined) p.total_checks=(u.total_checks||0)+ex.tc;
+  if(ex.bw!==undefined) p.best_week=Math.max(u.best_week||0,ex.bw);
+  if(ex.qa!==undefined) p.quote_count=(u.quote_count||0)+ex.qa;
+  if(ex.wd!==undefined) p.weeks_done=Math.max(u.weeks_done||0,ex.wd);
+  try{
+    await api('PATCH','users',null,{'id':`eq.${st.uid}`},p);
+    Object.assign(st.u,p);
+  }catch{}
+}
+
+// ===== ACHIEVEMENTS =====
+async function chkAch(){
+  const u=st.u;if(!u)return;
+  const achs=u.achievements||[];
+  let chg=false;
+  for(const a of ACH){
+    if(!achs.includes(a.i)&&a.f(u)){
+      achs.push(a.i);chg=true;
+      showT('🏆 解锁：'+a.x+' '+a.n);
+    }
+  }
+  if(chg){
+    try{await api('PATCH','users',null,{'id':`eq.${st.uid}`},{achievements:achs});u.achievements=achs}catch{}
+  }
+  renderAch();
+}
+
+function renderAch(){
+  const u=st.u||{};
+  const ok=u.achievements||[];
+  document.getElementById('ag').innerHTML=ACH.map(a=>{
+    const o=ok.includes(a.i);
+    return `<div class="ai${o?' on':''}"><div class="ax">${o?a.x:'🔒'}</div><div class="an">${o?a.n:a.d}</div></div>`;
+  }).join('');
+}
+
+// ===== QUOTE =====
+async function svQ(){
+  const t=document.getElementById('qt').value.trim();
+  if(!t){showT('⚠️ 请先写下一句金句');return}
+  try{
+    await api('POST','quotes',null,{user_id:st.uid,content:t,week_num:st.wk,created_at:new Date().toISOString()});
+    await saveU(PTS.QUOTE,{qa:1});
+    await chkAch();
+    renderPts();
+    document.getElementById('qt').value='';
+    showT('💬 金句已保存！+'+PTS.QUOTE+'分');
+    renderQ();
+  }catch{showT('❌ 保存失败')}
+}
+
+async function renderQ(){
+  if(!st.uid)return;
+  try{
+    const rows=await apiGet('quotes','*',{'user_id':`eq.${st.uid}`,'order':'created_at.desc','limit':20});
+    const el=document.getElementById('qList');
+    if(!rows.length){el.innerHTML='<p style="color:#bbb;text-align:center;padding:16px">还没有金句，写第一句吧 ✨</p>';return}
+    el.innerHTML=rows.map(q=>`<div style="padding:8px 0;border-bottom:1px dashed #E8D5B0"><div style="font-style:italic;color:#5C3D2E">"${esc(q.content)}"</div><div style="font-size:11px;color:#B0A090;margin-top:3px">${new Date(q.created_at).toLocaleString('zh-CN')}</div></div>`).join('');
+  }catch{}
+}
+
+// ===== RANKING =====
+async function renderRank(){
+  try{
+    const users=await apiGet('users','id,nickname,points','order=points.desc&limit=20');
+    let mr=null;
+    const lb=document.getElementById('lb');
+    lb.innerHTML=users.map((u,i)=>{
+      if(u.id===st.uid)mr=i+1;
+      const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+      const mc=i===0?'r1':i===1?'r2':i===2?'r3':'ro';
+      const me=u.id===st.uid;
+      return `<div class="ri${me?' rme':''}"><div class="rm ${mc}">${m}</div><div class="rn">${me?'★ ':''}${esc(u.nickname)}${me?'（我）':''}</div><div class="rp">${u.points}分</div></div>`;
+    }).join('')||'<p style="color:#bbb;text-align:center;padding:16px">暂无数据</p>';
+    document.getElementById('mRank').textContent=mr?'#'+mr:'未上榜';
+  }catch{}
+  document.getElementById('rules').innerHTML=[
+    ['✅ 勾选一个行动',PTS.CHECK],['💾 保存打卡',PTS.SAVE],['💬 保存金句',PTS.QUOTE],
+    ['🎯 一周完成3项',PTS.ALL3],['🔥 连续3天',PTS.S3],['🔥 连续7天',PTS.S7],
+    ['🔥 连续30天',PTS.S30],['🌱 第一周打卡',PTS.FW],
+  ].map(([l,p])=>`<div class="rulei"><span>${l}</span><b style="color:#E8A030">+${p}分</b></div>`).join('');
+}
+
+// ===== HISTORY =====
+async function renderHis(){
+  if(!st.uid)return;
+  try{
+    const rows=await apiGet('checkins','*',{'user_id':`eq.${st.uid}`,'order':'week_num.desc','limit':50});
+    const el=document.getElementById('his');
+    if(!rows.length){el.innerHTML='<p style="color:#bbb;text-align:center;padding:20px">暂无打卡记录，开始第一周吧！</p>';return}
+    el.innerHTML=rows.map(w=>{
+      const d=[w.c1,w.c2,w.c3].filter(Boolean).length;
+      const ch=[w.c1?'✅':'☐',w.c2?'✅':'☐',w.c3?'✅':'☐'];
+      const p=d*PTS.CHECK+(w.saved_at?PTS.SAVE:0);
+      return `<div class="hi"><div class="hd">第 ${w.week_num} 周 · 完成 ${d}/3 · ${w.saved_at?new Date(w.saved_at).toLocaleString('zh-CN'):''} · <b style="color:#E8A030">+${p}分</b></div><div class="hr">${w.w1_c?'• 微善行：'+esc(w.w1_c)+(w.w1_d?' ('+esc(w.w1_d)+')':'')+'<br>':''}${w.w2_c?'• 积极回应：'+esc(w.w2_c)+(w.w2_d?' ('+esc(w.w2_d)+')':'')+'<br>':''}${w.w3_c?'• 感恩表达：'+esc(w.w3_c)+(w.w3_d?' ('+esc(w.w3_d)+')':''):''}</div><div style="margin-top:6px">${ch.join(' ')}</div></div>`;
+    }).join('');
+  }catch{}
+}
+
+// ===== LOGOUT =====
+function logout(){
+  if(!confirm('确定退出登录吗？'))return;
+  sessionStorage.removeItem('sxs');
+  st={uid:null,nick:null,u:null,wk:1};
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login').classList.remove('hide');
+  document.getElementById('inName').value='';
+  document.getElementById('loginErr').textContent='';
+}
+
+// ===== HELPERS =====
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>
